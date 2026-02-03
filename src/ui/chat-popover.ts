@@ -163,17 +163,23 @@ export class ChatPopover {
                 f => f.type === 'application/pdf'
             );
 
-            if (files.length === 0) return;
+            if (files.length === 0) {
+                dropZone.textContent = 'No PDF files detected. Please drop a PDF file.';
+                return;
+            }
 
             dropZone.textContent = 'Processing...';
 
             try {
+                console.log('Parsing PDF files:', files.map(f => f.name));
                 const contents = await this._pdfParser.parseMultiple(files);
+                console.log('PDF parsed successfully:', contents.map(c => ({ name: c.filename, pages: c.pageCount, textLength: c.text.length })));
                 this._pdfContents.push(...contents);
                 this._updatePdfList();
                 dropZone.textContent = 'Drop more PDFs or remove above';
-            } catch {
-                dropZone.textContent = 'Failed to parse PDF(s)';
+            } catch (error: any) {
+                console.error('PDF parse error:', error);
+                dropZone.textContent = `Failed to parse PDF: ${error.message || 'Unknown error'}`;
             }
         });
     }
@@ -237,7 +243,8 @@ export class ChatPopover {
 
         this._isGenerating = true;
         this._toggleButtons(true);
-        this._responseEl.textContent = '';
+        this._responseEl.textContent = 'Thinking...';
+        this._responseEl.style.display = 'block';
 
         let prompt = userInput;
 
@@ -248,6 +255,13 @@ export class ChatPopover {
         this._conversation.addUserMessage(this._currentNoteId, prompt);
 
         const selectedModel = this._modelSelect?.value || this._settings.defaultModel || this._models[0]?.name;
+
+        const cursor = editor.getCursor();
+        const startLine = cursor.line + 1;
+        editor.replaceRange('\n', cursor);
+        let streamedContent = '';
+        let lastLineCount = 1;
+        let firstChunk = true;
 
         try {
             const messages = this._conversation.getConversationContext(this._currentNoteId);
@@ -264,8 +278,20 @@ export class ChatPopover {
                 },
                 (chunk) => {
                     if (this._responseEl) {
+                        if (firstChunk) {
+                            this._responseEl.textContent = '';
+                            firstChunk = false;
+                        }
                         this._responseEl.textContent += chunk;
                     }
+                    const prevContent = streamedContent;
+                    streamedContent += chunk;
+                    const prevLineCount = prevContent.split('\n').length;
+                    const newLineCount = streamedContent.split('\n').length;
+                    const startPos = { line: startLine, ch: 0 };
+                    const endPos = { line: startLine + lastLineCount - 1, ch: editor.getLine(startLine + lastLineCount - 1)?.length || 0 };
+                    editor.replaceRange(streamedContent, startPos, endPos);
+                    lastLineCount = newLineCount;
                 }
             );
 

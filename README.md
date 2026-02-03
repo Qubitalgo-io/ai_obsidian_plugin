@@ -16,13 +16,13 @@ A powerful Obsidian plugin that integrates Ollama large language models directly
 
 ### Chat Popover
 
-Press the spacebar on an empty new line to open a floating chat interface. The popover provides:
+Press `Cmd+O` or `Cmd+Space` (Mac) to open a floating chat interface. The popover provides:
 
 - Text input for prompts and questions
 - PDF upload zone supporting multiple documents
 - Model selector with auto-detection of available models
 - Quick action buttons for common operations
-- Real-time streaming responses
+- Real-time streaming responses with live output to your note
 
 ### Fill Pattern Detection
 
@@ -118,11 +118,12 @@ The plugin maintains conversation context within each note session, enabling:
 
 ### Opening the Chat Popover
 
-1. Place your cursor on an empty line
-2. Press the spacebar
+1. Place your cursor anywhere in your note
+2. Press `Cmd+O` or `Cmd+Space` (Mac)
 3. The chat popover appears near your cursor
 4. Type your prompt or upload a PDF
-5. Press Enter or click Send
+5. Press `Cmd+Enter` or click Send
+6. Watch the response stream directly into your note
 
 ### Using Fill Patterns
 
@@ -132,11 +133,11 @@ The plugin maintains conversation context within each note session, enabling:
 
 ### Summarizing PDFs
 
-1. Open the chat popover with spacebar
+1. Open the chat popover with `Cmd+O` or `Cmd+Space`
 2. Drag and drop PDF files into the upload zone
-3. Type a prompt such as "Summarize this document"
-4. Review the streaming response
-5. Choose an action from the action bar
+3. Type a prompt such as "Summarize this document" or "Create comprehensive notes"
+4. Review the streaming response in both the popover and your note
+5. Choose an action from the action bar (Insert Below, Replace, Copy, New Note, Dismiss)
 
 ### Using Inline Annotations
 
@@ -168,18 +169,27 @@ Access plugin settings through Obsidian Settings > Ollama.
 | Ollama URL | Server address for Ollama instance | `http://localhost:11434` |
 | Default Model | Preferred model for generation | Auto-detected |
 | Temperature | Controls randomness of output (0.0-1.0) | `0.7` |
-| Max Tokens | Maximum length of generated content | `2048` |
+| Max Tokens | Maximum length of generated content | `16384` |
 | Context Lines | Lines of context for fill patterns | `10` |
 | Streaming | Enable real-time response streaming | `true` |
 | Focus Mode Hotkey | Keyboard shortcut for focus mode | `Ctrl+Shift+F` |
+
+### Keyboard Shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| `Cmd+O` | Open Chat Popover |
+| `Cmd+Space` | Open Chat Popover (alternative) |
+| `Cmd+Enter` | Send message in chat |
+| `Escape` | Close popover / Exit focus mode |
 
 ## Development
 
 ### Building from Source
 
 ```bash
-git clone https://github.com/your-username/ollama-obsidian.git
-cd ollama-obsidian
+git clone https://github.com/Qubitalgo-io/ollama_obsidian_plugin.git
+cd ollama_obsidian_plugin
 npm install
 npm run build
 ```

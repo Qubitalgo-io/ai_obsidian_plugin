@@ -1,28 +1,43 @@
 import { PDFContent } from '../types';
 
+const pdfjsLib = require('pdfjs-dist/legacy/build/pdf.js');
+const pdfjsWorker = require('pdfjs-dist/legacy/build/pdf.worker.entry.js');
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;
+
 export class PDFParser {
     async parse(file: File): Promise<PDFContent> {
-        const arrayBuffer = await file.arrayBuffer();
-        const pdfjs = await import('pdfjs-dist');
-        const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
+        try {
+            const arrayBuffer = await file.arrayBuffer();
+            
+            const loadingTask = pdfjsLib.getDocument({
+                data: new Uint8Array(arrayBuffer),
+                verbosity: 0
+            });
+            
+            const pdf = await loadingTask.promise;
 
-        let fullText = '';
-        const pageCount = pdf.numPages;
+            let fullText = '';
+            const pageCount = pdf.numPages;
 
-        for (let i = 1; i <= pageCount; i++) {
-            const page = await pdf.getPage(i);
-            const textContent = await page.getTextContent();
-            const pageText = textContent.items
-                .map((item: any) => item.str)
-                .join(' ');
-            fullText += pageText + '\n\n';
+            for (let i = 1; i <= pageCount; i++) {
+                const page = await pdf.getPage(i);
+                const textContent = await page.getTextContent();
+                const pageText = textContent.items
+                    .map((item: any) => item.str)
+                    .join(' ');
+                fullText += pageText + '\n\n';
+            }
+
+            return {
+                filename: file.name,
+                text: fullText.trim(),
+                pageCount
+            };
+        } catch (error) {
+            console.error('PDF parsing error:', error);
+            throw error;
         }
-
-        return {
-            filename: file.name,
-            text: fullText.trim(),
-            pageCount
-        };
     }
 
     async parseMultiple(files: File[]): Promise<PDFContent[]> {
